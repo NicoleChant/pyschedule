@@ -1,0 +1,9 @@
+build/
+
+**/*.egg-info
+**/*.__pycache__
+**/*.jpg
+**/*.jpeg
+**/*.png
+**/*.csv
+

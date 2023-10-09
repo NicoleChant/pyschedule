@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+from pathlib import Path
+from pyschedule.schedule import Scheduler
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("path", help="")
+    parser.add_argument("-s", "--suffix", type=str, default="fna")
+    parser.add_argument("-md", "--maxdepth", type=int, default=1)
+    parser.add_argument("-fp", "--fpath", type=str)
+    parser.add_argument("-fn", "--fname", type=str)
+    parser.add_argument("-tb", "--total_buckets", type=int, default=10)
+    
+    args = parser.parse_args()
+
+    path = args.path
+    assert Path(path).is_dir(), f"Given path {path} does not exist."
+
+    suffix = args.suffix
+    fpath = args.fpath
+    fname = args.fname
+    maxdepth = args.maxdepth
+    total_buckets = args.total_buckets
+    
+
+    # >>>>>>>>>>>>>>>>> Program Starts
+    
+    scheduler = Scheduler(**vars(args))
+    scheduler.schedule()
+
+
