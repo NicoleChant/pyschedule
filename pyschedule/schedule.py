@@ -56,12 +56,12 @@ class Scheduler:
     
     def detect_files(self) -> list[str]:
         print(colored("Please wait while the files are being detected...", "blue"))
-        files: list[Path] = []
+        files: list[Path] = [file for file in Path(self.path).glob(f"**/*.{self.suffix}")]
 
-        for depth in range(1, self.maxdepth+1):
-            presuffix = '/'.join(['*'] * depth)
-            depth_collection = [Path(file) for file in glob(self.path + '/' + presuffix + f".{self.suffix}")]
-            files.extend(depth_collection)
+        # for depth in range(1, self.maxdepth+1):
+        #    presuffix = '/'.join(['*'] * depth)
+        #    depth_collection = [Path(file) for file in glob(self.path + '/' + presuffix + f".{self.suffix}")]
+        #    files.extend(depth_collection)
 
         files = self._apply_constraints(files)
         total_detected_files = len(files)    
