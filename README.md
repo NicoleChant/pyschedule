@@ -17,7 +17,7 @@ Nonetheless it's currently on my todo list.
 First you need to clone the repo and install via pip
 
 ```
-git@github.com:NicoleChant/pyschedule.git
+git clone git@github.com:NicoleChant/pyschedule.git
 ```
 
 
