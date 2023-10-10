@@ -36,9 +36,9 @@ class Scheduler:
         assert isinstance(self.total_buckets, int), f"Total buckets {self.total_buckets} must be an int."
         
         print(colored("Detected constraints.", "blue"))
-        print(colored("Ending constraint: '{self.ending_constraint}'", "blue"))
-        print(colored("Starting constraint: '{self.starting_constraint}'", "blue"))
-        print(colored("Parent constraint: '{self.parent_constraint}'", "blue"))
+        print(colored(f"Ending constraint: '{self.ending_constraint}'", "blue"))
+        print(colored(f"Starting constraint: '{self.starting_constraint}'", "blue"))
+        print(colored(f"Parent constraint: '{self.parent_constraint}'", "blue"))
     
         
 
