@@ -35,6 +35,13 @@ class Scheduler:
         assert isinstance(self.maxdepth, int), f"Maxdepth {self.maxdepth} must be an int."
         assert isinstance(self.total_buckets, int), f"Total buckets {self.total_buckets} must be an int."
         
+        print(colored("Detected constraints.", "blue"))
+        print(colored("Ending constraint: '{self.ending_constraint}'", "blue"))
+        print(colored("Starting constraint: '{self.starting_constraint}'", "blue"))
+        print(colored("Parent constraint: '{self.parent_constraint}'", "blue"))
+    
+        
+
 
     def _apply_constraints(self, files: list[Path]) -> list[str]:
         """Removes files failed to pass constraint check and returns a filtered list."""
