@@ -62,17 +62,21 @@ class Scheduler:
         #    presuffix = '/'.join(['*'] * depth)
         #    depth_collection = [Path(file) for file in glob(self.path + '/' + presuffix + f".{self.suffix}")]
         #    files.extend(depth_collection)
-
-        files = self._apply_constraints(files)
+        
         total_detected_files = len(files)    
         assert total_detected_files >= self.total_buckets, f"Total buckets {self.total_buckets} cannot be strictly greater than the \
                                         total number of detected files {total_detected_files}."
+         
         
+        print(colored(f"Total files detected: {total_detected_files}.", "green"))
+        print(colored(f"Apply constraints...", "blue"))
+        files = self._apply_constraints(files)
+
+
         # randomize job assignment 
         if self.shuffle:
             np.random.shuffle(files)
 
-        print(colored(f'Total files detected {len(files)}', 'magenta'))
         return files
 
 
