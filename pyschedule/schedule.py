@@ -45,7 +45,7 @@ class Scheduler:
 
     def _apply_constraints(self, files: list[Path]) -> list[str]:
         """Removes files failed to pass constraint check and returns a filtered list."""
-
+        
         if self.ending_constraint:
             files = filter(lambda file: file.stem.endswith(self.ending_constraint), files)
         
@@ -69,16 +69,14 @@ class Scheduler:
         #    presuffix = '/'.join(['*'] * depth)
         #    depth_collection = [Path(file) for file in glob(self.path + '/' + presuffix + f".{self.suffix}")]
         #    files.extend(depth_collection)
+         
+        print(colored(f"Apply constraints...", "blue"))
+        files = self._apply_constraints(files)
         
         total_detected_files = len(files)    
         assert total_detected_files >= self.total_buckets, f"Total buckets {self.total_buckets} cannot be strictly greater than the \
                                         total number of detected files {total_detected_files}."
          
-        
-        print(colored(f"Total files detected: {total_detected_files}.", "green"))
-        print(colored(f"Apply constraints...", "blue"))
-        files = self._apply_constraints(files)
-
 
         # randomize job assignment 
         if self.shuffle:
