@@ -77,6 +77,8 @@ class Scheduler:
         assert total_detected_files >= self.total_buckets, f"Total buckets {self.total_buckets} cannot be strictly greater than the \
                                         total number of detected files {total_detected_files}."
          
+        
+        print(colored(f"Total files detected: {total_detected_files}.", "green"))
 
         # randomize job assignment 
         if self.shuffle:
