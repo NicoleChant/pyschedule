@@ -18,7 +18,7 @@ This is the first version. For any bugs you may encounter please feel free to op
 There are some arguments that I have yet to work on by adding further restrictions on the inclusion of files. 
 Nonetheless it's currently on my todo list.
 
-*~ Channi*
+*By Channi*
 
 ## Usage
 

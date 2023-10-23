@@ -42,7 +42,6 @@ class Scheduler:
     
         
 
-
     def _apply_constraints(self, files: list[Path]) -> list[str]:
         """Removes files failed to pass constraint check and returns a filtered list."""
         
@@ -63,7 +62,7 @@ class Scheduler:
     
     def detect_files(self) -> list[str]:
         print(colored("Please wait while the files are being detected...", "blue"))
-        files: list[Path] = [file for file in Path(self.path).glob(f"**/*.{self.suffix}")]
+        files: list[Path] = [file.resolve() for file in Path(self.path).glob(f"**/*.{self.suffix}")]
 
         # for depth in range(1, self.maxdepth+1):
         #    presuffix = '/'.join(['*'] * depth)
