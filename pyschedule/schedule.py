@@ -1,4 +1,7 @@
 from pathlib import Path
+import logging
+
+# TODO REMOVE NUMPY 
 import numpy as np
 import sys
 import json
@@ -7,7 +10,13 @@ from termcolor import colored
 import uuid
 from glob import glob
 from dataclasses import dataclass, field
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Union
+import random 
+import pandas as pd
+import time 
+
+
+
 
 @dataclass(slots=True, kw_only=True)
 class Scheduler:
@@ -21,11 +30,17 @@ class Scheduler:
     ending_constraint: Optional[str] = field(default=None)
     existence_constraint: Optional[str] = field(default=None)
     parent_constraint: Optional[Iterable[str]] = field(default=None)
-    
+    assembly: Optional[pd.DataFrame] = field(default=None)
+    use_assembly: bool = field(default=True)
     # TODO
     # Add mindepth variable
 
     def __post_init__(self):
+        if self.use_assembly and Path("data/assembly.txt.gz").is_file():
+            self.assembly = pd.read_csv("data/assembly.txt.gz")
+        else:
+            self.assembly = None 
+
         if self.suffix.startswith("."):
             self.suffix = self.suffix[1:]
     
@@ -39,7 +54,8 @@ class Scheduler:
         print(colored(f"Ending constraint: '{self.ending_constraint}'", "blue"))
         print(colored(f"Starting constraint: '{self.starting_constraint}'", "blue"))
         print(colored(f"Parent constraint: '{self.parent_constraint}'", "blue"))
-    
+        
+        logging.basicConfig(filename="schedule.log", level=logging.WARNING, format="%(levelname)s:%(asctime)s:%(message)s")
         
 
     def _apply_constraints(self, files: list[Path]) -> list[str]:
@@ -82,26 +98,83 @@ class Scheduler:
         # randomize job assignment 
         if self.shuffle:
             np.random.shuffle(files)
-
+        
+        
         return files
 
+    @staticmethod 
+    def assign_tasks(tasks: list, total_buckets: int) -> list[list]:
+        then = time.perf_counter()
+        total = len(tasks)
+        step = total // total_buckets
+        remainder = total % total_buckets 
+        assigned_tasks = []
+        infimum = 0
+        while True:
+            if remainder > 0:
+                supremum = infimum + step + 1
+                remainder -= 1
+            else:
+                supremum = infimum + step
+            assigned_tasks.append(tasks[infimum: supremum])
 
-    def schedule(self):
+            if len(assigned_tasks) == total_buckets:
+                break 
+
+            infimum = supremum 
+
+        now = time.perf_counter()
+
+        # only for testing purposes
+        try:
+            assigned_numpy_tasks = [job.tolist() for job in np.array_split(tasks, total_buckets)]
+        except Exception as err:
+            print(err)
+            logging.error(f"Encountered the following exception when creating the numpy array schedule: '{err}'.")
+            assigned_numpy_tasks = None  
+        
+        if assigned_numpy_tasks is not None:
+            assert assigned_tasks == assigned_numpy_tasks, "Invalid task assigment."
+        
+        print(colored(f"Task assignment completed within {now-then:.2f} second(s).", "green"))
+        return assigned_tasks
+
+
+    def schedule(self, save_json: bool = True) -> dict[int, list]:
         files = self.detect_files()
+        if self.assembly is not None:
+            files_df = pd.DataFrame(files, columns=["filename"])
+            files_df.loc[:, "#assembly_accession"] = files_df['filename'].str.extract("(GC[AF]_\d+\.\d+)_")
+            files_df = files_df.merge(self.assembly, on="#assembly_accession", how="left")
 
-        buckets = {
-            idx: bucket.tolist() for idx, bucket in enumerate(np.array_split(files, self.total_buckets))
-        }
+            if files_df.isna().sum().sum():
+                logging.warning("NaN Values detected during assembly merging stage.")
 
-        schedule_id = uuid.uuid4()
+            files_df = files_df.groupby("species_taxid").agg({"filename": lambda ds: ds.tolist()}).to_dict().pop("filename")
+            
+            species_taxids = list(files_df.keys())
+            
+            buckets = {
+                    idx: {species_taxid: files_df[species_taxid] for species_taxid in bucket} for idx, bucket in enumerate(Scheduler.assign_tasks(species_taxids, self.total_buckets)) 
+                    }
+        else:
+            buckets = {
+                idx: bucket.tolist() for idx, bucket in enumerate(np.array_split(files, self.total_buckets))
+            }
+
+        schedule_id = uuid.uuid4().hex
         print(colored(f'Generated schedule id: {schedule_id}', 'green'))
     
         dest_schedule = Path(f"schedule_{schedule_id}.json")
         
-        with dest_schedule.open(mode="w", encoding="UTF-8") as f:
-            json.dump(buckets, f, indent=4)
+        if save_json:
+            with dest_schedule.open(mode="w", encoding="UTF-8") as f:
+                json.dump(buckets, f, indent=4)
 
         print(colored(f'New schedule layout has completed.', 'green'))
+
+
+        return buckets
 
 
 
@@ -116,7 +189,7 @@ if __name__ == "__main__":
     parser.add_argument("-sc", "--starting_constraint", type=str, default=None)
     parser.add_argument("-ec", "--ending_constraint", type=str, default=None)
     parser.add_argument("-pc", "--parent_constraint", nargs='+', type=str, default=None)
-
+    parser.add_argument("-ua", "--use_assembly", type=int, choices=[0, 1], default=1)
     args = parser.parse_args()
 
     # >>>>>>>>>>>>>>>>> Program Starts
